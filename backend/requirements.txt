@@ -1,0 +1,16 @@
+docker
+flask
+flask-cors
+tabula-py
+opencv-python
+camelot-py
+pymupdf
+sentence-transformers
+jpype1
+openai
+groq
+ollama
+llama-index-core
+llama-parse
+llama-index-readers-file
+python-dotenv

@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "11435:11434"
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env  # Path to .env file
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data  # Maps local ./data to /app/data in the container
+      - /var/run/docker.sock:/var/run/docker.sock
+
+
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - ollama  # Ensure backend waits for Ollama to be ready
+
+  frontend:
+    build:
+      context: ./frontend/rag-ui
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/rag-ui:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # for watching file changes in Docker
+volumes:
+  index_data:  # Define a named volume
+  ollama:  # Volume for Ollama’s data

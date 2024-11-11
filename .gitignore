@@ -1,0 +1,6 @@
+backend/__pycache__/
+backend/vector_dbs/
+*.pkl
+*.index
+*.env
+.DS_Store

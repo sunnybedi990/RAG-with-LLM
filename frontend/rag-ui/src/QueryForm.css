@@ -1,0 +1,79 @@
+.query-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #222;
+    color: #fff;
+    padding: 20px;
+}
+
+.chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: #333;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    max-width: 80%;
+    max-width: 80%;
+    line-height: 1.5;
+    white-space: pre-wrap; /* Ensures line breaks are preserved */
+
+}
+
+.user {
+    background-color: #4CAF50;
+    align-self: flex-end;
+    color: #fff;
+    text-align: right;
+}
+
+.bot {
+    background-color: #444;
+    align-self: flex-start;
+    color: #fff;
+    text-align: left;
+}
+
+.error {
+    background-color: #d9534f;
+    align-self: flex-start;
+    color: #fff;
+}
+
+.input-area {
+    display: flex;
+    align-items: center;
+}
+
+.input {
+    flex: 1;
+    padding: 10px;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.send-button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.message p {
+    margin-bottom: 10px;  /* Adds space between paragraphs */
+    line-height: 1.5;     /* Improves readability */
+}
