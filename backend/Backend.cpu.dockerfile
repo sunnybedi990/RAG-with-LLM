@@ -16,7 +16,7 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
     rm ~/miniconda.sh && \
     /opt/conda/bin/conda clean -a
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN /opt/conda/bin/conda create -n rag_env python=3.11 -y && \
     /opt/conda/bin/conda run -n rag_env pip install --upgrade pip && \
     /opt/conda/bin/conda run -n rag_env pip install -r requirements.txt && \

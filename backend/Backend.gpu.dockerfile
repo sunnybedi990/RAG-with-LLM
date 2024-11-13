@@ -85,7 +85,7 @@ COPY requirements.txt .
 # Create a Conda environment, install dependencies, and handle GPU/CPU-specific packages
 RUN /opt/conda/bin/conda create -n rag_env python=3.11 -y && \
     /opt/conda/bin/conda run -n rag_env pip install --upgrade pip && \
-    /opt/conda/bin/conda run -n rag_env pip install -r requirements.txt && \
+    /opt/conda/bin/conda run -n rag_env pip install -r backend/requirements.txt && \
     if [ "$USE_GPU" = "True" ]; then \
       /opt/conda/bin/conda run -n rag_env conda install -c pytorch faiss-gpu=1.9.0 -y; \
     else \

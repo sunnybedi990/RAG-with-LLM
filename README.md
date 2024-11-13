@@ -1,8 +1,8 @@
 # RAG System for Document Query and Summarization
 
-This project is a Retrieval-Augmented Generation (RAG) system that allows users to upload documents, perform queries, and generate summaries using vector-based search and language models. The project consists of two main parts:
-- **Backend**: Python-based server with vector database management and model integration.
-- **Frontend**: React-based user interface for document upload, querying, and summarization.
+This project is a Retrieval-Augmented Generation (RAG) system that enables users to upload documents, perform complex queries, and generate summaries using vector-based search and various language models. It consists of two main parts:
+- **Backend**: A Python server for vector database management and model integration.
+- **Frontend**: A React user interface for document upload, querying, and summarization.
 
 ---
 
@@ -18,17 +18,18 @@ This project is a Retrieval-Augmented Generation (RAG) system that allows users 
 4. [Project Structure](#project-structure)
 5. [API Documentation](#api-documentation)
 6. [Configuration](#configuration)
-7. [Troubleshooting](#troubleshooting)
+7. [Key Features and Sidebar Options](#key-features-and-sidebar-options)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Project Overview
-This RAG system uses vector-based search to index documents and allows users to perform complex queries or request summaries. The frontend provides a user-friendly interface for interactions, while the backend manages the vector database and calls the language model for generating responses.
+This RAG system uses vector-based search to index documents, allowing users to perform complex queries or request summaries. The frontend provides an interactive interface, while the backend manages the vector database and communicates with language models to generate responses.
 
 ## Setup and Installation
 
 ### Prerequisites
-- **Conda** (for managing the backend environment with faiss-gpu)
+- **Conda** (for managing the backend environment)
 - **Docker** (for containerized builds)
 - **Node.js and npm** (for the frontend)
 - **Git** (to clone the repository)
@@ -51,7 +52,7 @@ This RAG system uses vector-based search to index documents and allows users to 
    ```bash
    pip install -r requirements.txt
    ```
-   - Ensure `faiss-gpu` is installed via the Conda environment to leverage GPU support.
+   - Ensure `faiss-gpu` is installed via Conda if using GPU support.
 
 4. **Run the backend server**:
    ```bash
@@ -76,20 +77,33 @@ This RAG system uses vector-based search to index documents and allows users to 
    ```
    The frontend server will start on `http://localhost:3000`.
 
+
 ### Docker Build
-To create a Docker container for this RAG system:
+To build and run a Docker container for this RAG system, set `USE_GPU` as a build argument to dynamically choose between GPU and CPU support:
 
 1. **Build the Docker image**:
-   ```bash
-   docker build -t rag-system .
-   ```
+   - **For GPU** (`USE_GPU=true`):
+     ```bash
+     docker build --build-arg USE_GPU=true -f backend/Backend.gpu.dockerfile -t rag-system-gpu .
+     ```
+   - **For CPU** (`USE_GPU=false`):
+     ```bash
+     docker build --build-arg USE_GPU=false -f backend/Backend.cpu.dockerfile -t rag-system-cpu .
+     ```
 
 2. **Run the Docker container**:
-   ```bash
-   docker run -p 5000:5000 -p 3000:3000 rag-system
-   ```
-   - This command will expose both backend (`5000`) and frontend (`3000`) ports.
-   - Ensure any necessary `.env` configuration is included in the Docker image, or use Docker secrets for sensitive information.
+   - **GPU setup**:
+     ```bash
+     docker-compose -f compose.gpu.yml up 
+     ```
+   - **CPU setup**:
+     ```bash
+     docker-compose -f compose.cpu.yml up
+     ```
+
+   - These commands will expose the backend (`5000`) and frontend (`3000`) ports.
+
+**Note:** Ensure that `USE_GPU` is handled in the Dockerfile with conditional steps based on the value of `USE_GPU`, allowing the setup to dynamically install GPU or CPU dependencies as needed.
 
 ---
 
@@ -146,7 +160,7 @@ project-root/
    - **Endpoint**: `/add`
    - **Method**: `POST`
    - **Description**: Uploads a PDF document, processes it, and adds it to the vector database.
-   - **Request**: Form-data with a file input named `pdf`.
+   - **Request**: Form-data with a file input named `pdf`, as well as `embedding_provider`, `embedding_model`, and `parser_type`.
    - **Response**: Success or error message.
 
 #### 2. **Query Document**
@@ -168,7 +182,7 @@ project-root/
 #### 3. **Summarize Document**
    - **Endpoint**: `/summarize`
    - **Method**: `POST`
-   - **Description**: Summarizes the entire document based on the vector embeddings.
+   - **Description**: Summarizes the entire document based on vector embeddings.
    - **Request JSON**:
      ```json
      {
@@ -185,10 +199,15 @@ project-root/
 
 ### Backend `.env` File Example
 Create a `.env` file in the backend directory to configure settings:
+
 ```env
-USE_GPU=true  # Set to true if using a GPU
 VECTOR_DB_PATH=vector_dbs/  # Path to store vector databases
+LLAMA_CLOUD_API_KEY=your_llama_api_key_here  # API key for Llama Cloud
+OPENAI_API_KEY=your_openai_api_key_here  # API key for OpenAI
+GROQ_API_KEY=your_groq_api_key_here  # API key for Groq
 ```
+
+Make sure to replace `your_llama_api_key_here`, `your_openai_api_key_here`, and `your_groq_api_key_here` with your actual API keys. These keys are required to authenticate requests to their respective services for embedding and language model tasks.
 
 ### Frontend `.env` File Example
 In the frontend directory, create a `.env` file to specify the backend server URL:
@@ -198,16 +217,45 @@ REACT_APP_BACKEND_URL=http://localhost:5000
 
 ---
 
+## Key Features and Sidebar Options
+
+### Model Selection
+- **API Model Provider**: Choose from multiple providers such as `openai`, `groq`, and `ollama`.
+- **LLM Models**: Options like `gpt-4o`, `llama3-70b-8192`, and others.
+
+### Embedding Models
+Embedding models are organized into nested categories:
+1. **Classic Models (pre-2020)**: Includes models like `elmo-original`, `bert-base-uncased`, etc.
+2. **Sentence Transformer Models (2020–2022)**: Includes `all-mpnet-base-v2`, etc.
+3. **LLM-Based Embeddings**: Models like `text-embedding-ada-002`.
+4. **Newer Specialized Models (2023–2024)**: `arctic-embed-large`, `nv-embed`, etc.
+5. **Mamba-Based State Space Models**: Includes `mamba-byte`, etc.
+6. **Hugging Face General Embedding Models**: `distilbert-base-uncased`, etc.
+
+### Parser Options
+Users can choose between:
+- **LlamaParser**: For complex documents.
+- **Custom Parser (Fitz + Camelot)**: For simpler documents.
+
+### Top K Results
+Customize the number of top results returned for queries.
+
+### Model Management
+- **Download and Delete Models**: Check, download, or delete models as needed.
+- **Cancel Downloads**: An option to cancel model downloads mid-way.
+
+---
+
 ## Troubleshooting
 1. **Common Errors**:
-   - Ensure that both backend and frontend are running on the expected ports (`5000` for backend and `3000` for frontend).
-   - For CORS issues, confirm the backend allows requests from `http://localhost:3000`.
+   - Confirm backend and frontend are running on expected ports (`5000` for backend, `3000` for frontend).
+   - For CORS issues, ensure the backend allows requests from `http://localhost:3000`.
 
 2. **Frontend Fails to Load or Shows Blank Page**:
-   - Ensure that the backend is running and accessible at `http://localhost:5000`.
+   - Ensure the backend is running and accessible at `http://localhost:5000`.
 
 3. **Docker Configuration**:
-   - Check if all necessary files and environment configurations are included in the Docker image.
-   - Use `docker logs <container_id>` to troubleshoot any runtime issues in Docker.
+   - Check `.env` files and necessary configurations are in the Docker image.
+   - Use `docker logs <container_id>` for debugging runtime issues in Docker.
 
-For any other issues, please refer to the respective `README.md` files in each folder.
+For any other issues, refer to the `README.md` files in each folder.
