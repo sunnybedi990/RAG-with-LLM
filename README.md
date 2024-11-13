@@ -225,12 +225,13 @@ REACT_APP_BACKEND_URL=http://localhost:5000
 
 ### Embedding Models
 Embedding models are organized into nested categories:
-1. **Classic Models (pre-2020)**: Includes models like `elmo-original`, `bert-base-uncased`, etc.
-2. **Sentence Transformer Models (2020–2022)**: Includes `all-mpnet-base-v2`, etc.
-3. **LLM-Based Embeddings**: Models like `text-embedding-ada-002`.
-4. **Newer Specialized Models (2023–2024)**: `arctic-embed-large`, `nv-embed`, etc.
-5. **Mamba-Based State Space Models**: Includes `mamba-byte`, etc.
-6. **Hugging Face General Embedding Models**: `distilbert-base-uncased`, etc.
+1. **Classic Models (pre-2020)**: Includes models like `elmo-original`, `bert-base-uncased`, `xlnet-base-cased`, etc.
+2. **Sentence Transformer Models (2020–2022)**: Includes `all-mpnet-base-v2`, `all-MiniLM-L6-v2`, etc.
+3. **LLM-Based Embeddings**: Contains models like `text-embedding-ada-002`, `gpt2-medium`, `embed-v3`, etc.
+4. **Newer Specialized Models (2023–2024)**: Includes models like `arctic-embed-large`, `nv-embed`, `longembed`, etc.
+5. **Mamba-Based State Space Models**: Options like `mamba-byte`, `moe-mamba`, and `vision-mamba`.
+6. **Hugging Face General Embedding Models**: Options include `distilbert-base-uncased`, `roberta-base`.
+
 
 ### Parser Options
 Users can choose between:
