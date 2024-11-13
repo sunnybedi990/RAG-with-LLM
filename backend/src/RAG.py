@@ -182,15 +182,15 @@ def add():
         return jsonify({"error": "PDF file is required"}), 400
 
     pdf_file = request.files['pdf']
-    use_llama = request.form.get('use_llama', 'false').lower() == 'true'
     embedding_provider = request.form.get('embedding_provider')
     embedding_model = request.form.get('embedding_model')
-
+    parser = request.form.get('parser_type')
     db_path = f"/app/data/vector_db_{os.path.splitext(pdf_file.filename)[0]}.index"
     pdf_path = os.path.join("/tmp", pdf_file.filename)
     pdf_file.save(pdf_path)
     print('USE GPU',USE_GPU)
     try:
+        use_llama = True if parser == 'LlamaParser' else False
         add_pdf_to_vector_db(
             pdf_path=pdf_path,
             db_path=db_path,

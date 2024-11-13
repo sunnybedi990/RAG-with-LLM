@@ -88,6 +88,8 @@ function Sidebar({
     const [uploadedFileName, setUploadedFileName] = useState("");
     const [isDragActive, setIsDragActive] = useState(false);
     const [downloadStatus, setDownloadStatus] = useState("");
+    const [useLlamaParser, setUseLlamaParser] = useState(false); // State for parser selection
+
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -105,6 +107,8 @@ function Sidebar({
         formData.append('pdf', file);
         formData.append('embedding_provider', selectedSubCategory);
         formData.append('embedding_model', embeddingModel);
+        formData.append('parser_type', useLlamaParser ? 'LlamaParser' : 'CustomParser'); // Add parser type to form data
+
 
         try {
             const res = await axios.post('http://localhost:5000/add', formData, {
@@ -115,6 +119,9 @@ function Sidebar({
             alert('Error uploading file.');
             console.error('Upload error:', error);
         }
+    };
+    const handleParserChange = (e) => {
+        setUseLlamaParser(e.target.value === 'LlamaParser');
     };
 
     const handleDragOver = (e) => {
@@ -250,10 +257,41 @@ function Sidebar({
                     <span>{uploadedFileName}</span>
                 </div>
             )}
+            <div className="group-box">
+                <h4 className="group-title">Parser Settings</h4>
+                <div className="sidebar-section">
+                    <div>
+                    <label className="sidebar-label">
+                            <input
+                                type="radio"
+                                name="parser"
+                                value="LlamaParser"
+                                checked={useLlamaParser}
+                                onChange={handleParserChange}
+                            />
+                            Use LlamaParser for complex documents
+                        </label>
+                    </div>
+                    <div>
+                    <label className="sidebar-label">
+                            <input
+                                type="radio"
+                                name="parser"
+                                value="CustomParser"
+                                checked={!useLlamaParser}
+                                onChange={handleParserChange}
+                            />
+                            Use Custom Parser (Fitz + Camelot)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
 
             {/* Embedding Provider and Model Group */}
             <div className="group-box">
                 <h4 className="group-title">Embedding Settings</h4>
+                {/* Parser Selection */}
 
                 {/* Embedding Provider Dropdown */}
                 <div className="sidebar-section">
