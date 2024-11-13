@@ -32,15 +32,62 @@ const apiModels = {
     ]
 };
 
-function Sidebar({ provider, setProvider, model, setModel, topK, setTopK, file, setFile, onSummarize }) {
+const embeddingModels = {
+    // Older/Classic Models (pre-2020)
+    classic: {
+        elmo: ["elmo-original"],
+        fasttext: ["fasttext-wiki-news-subwords-300"],
+        bert: ["bert-base-uncased", "bert-large-uncased"],
+        xlnet: ["xlnet-base-cased"],
+        albert: ["albert-base-v2"],
+        google_use: ["universal-sentence-encoder"]
+    },
+
+    // Sentence Transformer Models (2020–2022)
+    sentence_transformers: {
+        sentence_transformers: ["all-mpnet-base-v2", "all-MiniLM-L6-v2", "paraphrase-MiniLM-L12-v2"]
+    },
+
+    // Large Language Model (LLM) Based Embeddings
+    llm_based: {
+        openai: ["text-embedding-ada-002", "text-embedding-3-small", "text-embedding-3-large"],
+        gpt2: ["gpt2-medium"],
+        cohere: ["embed-v3"],
+        t5: ["t5-base"],
+        jamba: ["jamba"]
+    },
+
+    // Newer Specialized Models (2023–2024)
+    new_models: {
+        arctic_embed: ["arctic-embed-small", "arctic-embed-medium", "arctic-embed-large"],
+        nv_embed: ["nv-embed"],
+        longembed: ["longembed"]
+    },
+
+    // Mamba-Based State Space Models
+    mamba: {
+        mamba: ["mamba-byte", "moe-mamba", "vision-mamba"]
+    },
+
+    // Hugging Face General Embedding Models
+    hugging_face: {
+        hugging_face: ["distilbert-base-uncased", "roberta-base"]
+    }
+};
+
+
+function Sidebar({
+    provider, setProvider, model, setModel,
+    embeddingProvider, setEmbeddingProvider,
+    embeddingModel, setEmbeddingModel,
+    selectedCategory, setSelectedCategory,
+    selectedSubCategory, setSelectedSubCategory,
+    topK, setTopK, file, setFile, onSummarize
+}) {
 
     const [uploadedFileName, setUploadedFileName] = useState("");
     const [isDragActive, setIsDragActive] = useState(false);
     const [downloadStatus, setDownloadStatus] = useState("");
-    const [progress, setProgress] = useState(0);
-
-    const [remainingTime, setRemainingTime] = useState(null);
-
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -56,6 +103,8 @@ function Sidebar({ provider, setProvider, model, setModel, topK, setTopK, file, 
 
         const formData = new FormData();
         formData.append('pdf', file);
+        formData.append('embedding_provider', selectedSubCategory);
+        formData.append('embedding_model', embeddingModel);
 
         try {
             const res = await axios.post('http://localhost:5000/add', formData, {
@@ -113,6 +162,23 @@ function Sidebar({ provider, setProvider, model, setModel, topK, setTopK, file, 
         }
     };
 
+    const handleEmbeddingProviderChange = (event) => {
+        const category = event.target.value;
+        setEmbeddingProvider(category);
+        setSelectedCategory(category);
+        setSelectedSubCategory("");
+        setEmbeddingModel(""); // Reset model selection when category changes
+    };
+
+    const handleSubCategoryChange = (event) => {
+        const subCategory = event.target.value;
+        setSelectedSubCategory(subCategory);
+        setEmbeddingModel(embeddingModels[selectedCategory][subCategory][0]); // Set the first model of this subCategory
+    };
+
+    const handleEmbeddingModelChange = (event) => {
+        setEmbeddingModel(event.target.value);
+    };
 
 
     // Polling function to check if the model download is complete
@@ -185,51 +251,104 @@ function Sidebar({ provider, setProvider, model, setModel, topK, setTopK, file, 
                 </div>
             )}
 
-            {/* API Provider, Model, and Top K Results Settings */}
-            <div className="sidebar-section">
-                <label className="sidebar-label">API Provider</label>
-                <select value={provider} onChange={handleProviderChange} className="sidebar-select">
-                    {Object.keys(apiModels).map((providerKey) => (
-                        <option key={providerKey} value={providerKey}>
-                            {providerKey}
-                        </option>
-                    ))}
-                </select>
+            {/* Embedding Provider and Model Group */}
+            <div className="group-box">
+                <h4 className="group-title">Embedding Settings</h4>
+
+                {/* Embedding Provider Dropdown */}
+                <div className="sidebar-section">
+                    <label className="sidebar-label">Embedding Provider Category</label>
+                    <select value={embeddingProvider} onChange={handleEmbeddingProviderChange} className="sidebar-select">
+                        <option value="">Select Provider</option>
+                        {Object.keys(embeddingModels).map((providerKey) => (
+                            <option key={providerKey} value={providerKey}>
+                                {providerKey}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Subcategory Dropdown (appears after selecting provider) */}
+                {selectedCategory && (
+                    <div className="sidebar-section">
+                        <label className="sidebar-label">Embedding Provider</label>
+                        <select value={selectedSubCategory} onChange={handleSubCategoryChange} className="sidebar-select">
+                            <option value="">Select Subcategory</option>
+                            {Object.keys(embeddingModels[selectedCategory]).map((subCategory) => (
+                                <option key={subCategory} value={subCategory}>
+                                    {subCategory}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {/* Embedding Model Dropdown (appears after selecting subcategory) */}
+                {selectedSubCategory && (
+                    <div className="sidebar-section">
+                        <label className="sidebar-label">Embedding Model</label>
+                        <select value={embeddingModel} onChange={handleEmbeddingModelChange} className="sidebar-select">
+                            <option value="">Select Model</option>
+                            {embeddingModels[selectedCategory][selectedSubCategory].map((modelName) => (
+                                <option key={modelName} value={modelName}>
+                                    {modelName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
 
-            <div className="sidebar-section">
-                <label className="sidebar-label">Model</label>
-                <select value={model} onChange={handleModelChange} className="sidebar-select">
-                    {apiModels[provider].map((modelName) => (
-                        <option key={modelName} value={modelName}>
-                            {modelName}
-                        </option>
-                    ))}
-                </select>
+            {/* API Provider and Model Group */}
+            <div className="group-box">
+                <h4 className="group-title">LLM Model Settings</h4>
+                <div className="sidebar-section">
+                    <label className="sidebar-label">LLM Model API Provider</label>
+                    <select value={provider} onChange={handleProviderChange} className="sidebar-select">
+                        {Object.keys(apiModels).map((providerKey) => (
+                            <option key={providerKey} value={providerKey}>
+                                {providerKey}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="sidebar-section">
+                    <label className="sidebar-label">LLM Model</label>
+                    <select value={model} onChange={handleModelChange} className="sidebar-select">
+                        {apiModels[provider].map((modelName) => (
+                            <option key={modelName} value={modelName}>
+                                {modelName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                {downloadStatus === "Downloading..." && (
+                    <div>
+                        <div className="spinner"></div>
+                        <button onClick={() => handleCancelPull(model)}>Cancel Download</button>
+                    </div>
+                )}
+                {downloadStatus === "Downloaded" && (
+                    <div>
+                        <button onClick={() => handleDeleteModel(model)}>Delete Model</button>
+                    </div>
+                )}
             </div>
-            {/* Display download status if a model is being downloaded or is downloaded */}
-            {downloadStatus === "Downloading..." && (
-                <div>
-                    <div className="spinner"></div>
-                    <button onClick={() => handleCancelPull(model)}>Cancel Download</button>
-                </div>
-            )}
-            {downloadStatus === "Downloaded" && (
-                <div>
-                    <button onClick={() => handleDeleteModel(model)}>Delete Model</button>
-                </div>
-            )}
 
-
-            <div className="sidebar-section">
-                <label className="sidebar-label">Top K Results</label>
-                <input
-                    type="number"
-                    value={topK}
-                    onChange={(e) => setTopK(Number(e.target.value))}
-                    min="1"
-                    className="sidebar-input"
-                />
+            {/* Top K Results Group */}
+            <div className="group-box">
+                <h4 className="group-title">Results Settings</h4>
+                <div className="sidebar-section">
+                    <label className="sidebar-label">Top K Results</label>
+                    <input
+                        type="number"
+                        value={topK}
+                        onChange={(e) => setTopK(Number(e.target.value))}
+                        min="1"
+                        className="sidebar-input"
+                    />
+                </div>
             </div>
 
             {/* Summarize Button */}
@@ -240,6 +359,7 @@ function Sidebar({ provider, setProvider, model, setModel, topK, setTopK, file, 
             </div>
         </div>
     );
+
 }
 
 export default Sidebar;

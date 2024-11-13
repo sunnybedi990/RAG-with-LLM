@@ -1,15 +1,20 @@
 .sidebar {
     width: 250px;
-    background-color: #333;
-    color: #fff;
+    background-color: #2b2f3a;
+    color: #e6e9ef;
     padding: 20px;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
 }
 
 .sidebar-title {
     font-size: 1.5em;
     margin-bottom: 15px;
+    color: #ffffff;
+    text-align: center;
+    font-weight: 600;
 }
 
 .sidebar-section {
@@ -18,55 +23,74 @@
 
 .sidebar-label {
     display: block;
-    font-size: 1em;
+    font-size: 0.9em;
     margin-bottom: 8px;
+    color: #b0b3ba;
+    font-weight: 500;
 }
 
 .sidebar-select,
 .sidebar-input {
-    width: 100%;
+    width: 90%;
     padding: 10px;
-    font-size: 1em;
+    font-size: 0.95em;
     border-radius: 5px;
-    border: none;
-    background-color: #444;
-    color: #fff;
+    border: 1px solid #555a65; /* Visible border color */
+    background-color: #3a3f4a;
+    color: #e6e9ef;
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Hide the default file input */
-.file-input {
-    display: none;
+.sidebar-select:hover,
+.sidebar-input:hover {
+    background-color: #4a4f5c;
+    border-color: #666b77; /* Slightly brighter border on hover */
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.1); /* Subtle glow on hover */
 }
+
+/* Focus state for accessibility and improved appearance */
+.sidebar-select:focus,
+.sidebar-input:focus {
+    border-color: #66bb6a;
+    box-shadow: 0 0 6px rgba(102, 187, 106, 0.5);
+    outline: none;
+}
+
 
 .file-drop-zone {
     padding: 20px;
-    border: 2px dashed #4CAF50;
-    border-radius: 5px;
+    border: 2px dashed #5cb85c;
+    border-radius: 8px;
     text-align: center;
-    color: #ddd;
+    color: #b2b5bd;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .file-drop-zone.active {
-    background-color: #444;
-    border-color: #4CAF50;
+    background-color: #3a3f4a;
+    border-color: #66bb6a;
 }
 
 .drop-text {
     font-size: 1em;
-    color: #aaa;
+    color: #a9abb3;
 }
 
 .upload-action-button {
     padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
+    background-image: linear-gradient(135deg, #1a73e8 0%, #0064e6 100%);
+    color: #fff;
     border-radius: 5px;
     cursor: pointer;
     font-size: 1em;
     border: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
     margin-top: 10px;
+}
+
+.upload-action-button:hover {
+    transform: translateY(-2px);
 }
 
 .upload-action-button:disabled {
@@ -77,8 +101,8 @@
 .file-name-box {
     margin-top: 10px;
     padding: 10px;
-    background-color: #222;
-    color: #ddd;
+    background-color: #3a3f4a;
+    color: #d1d3d8;
     border-radius: 5px;
     font-size: 0.9em;
     text-align: center;
@@ -87,23 +111,29 @@
 .summarize-button {
     width: 100%;
     padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    font-size: 16px;
+    background-image: linear-gradient(135deg, #5cb85c 0%, #4caf50 100%);
+    color: #fff;
+    font-size: 1em;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
     margin-top: 10px;
+}
+
+.summarize-button:hover {
+    transform: translateY(-2px);
 }
 
 .summarize-button:disabled {
     background-color: #888;
     cursor: not-allowed;
 }
+
 /* Spinner Styles */
 .spinner {
     border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #09f;
+    border-left-color: #42a5f5;
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -120,3 +150,20 @@
     }
 }
 
+/* Group Box Styling */
+.group-box {
+    border: 1px solid #404552;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #3a3f4a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.group-title {
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #b0b3ba;
+    text-transform: uppercase;
+}

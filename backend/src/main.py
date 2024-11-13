@@ -3,14 +3,14 @@ from VectorDB import VectorDB
 from add_to_vector_db import add_pdf_to_vector_db
 from rag_models import RAG_with_groq, Rag_with_ollama, RAG_with_openai  # Import the RAG functions from the other file
 
-def query_vector_db(db_path, query, top_k=5, model="openai",provider='', use_gpu=False):
+def query_vector_db(db_path, query, top_k=5, model="openai",provider='', embedding_provider='', embedding_model='',use_gpu=False):
     """Loads the vector database, performs a search query, and uses the specified model for response generation."""
-    db = VectorDB(dimension=384, use_gpu=use_gpu)
+    db = VectorDB(provider=embedding_provider, model_name=embedding_model, use_gpu=use_gpu)
     db.load_index(db_path)
 
     print(f"Querying the vector database with: '{query}'")
     results = db.search(query, top_k=top_k)
-
+    print(results)
     # Combine results into a single prompt
     prompt = f"User's query: {query}\nRelevant information:\n" + "\n".join([text for text, score in results])
     response = ""

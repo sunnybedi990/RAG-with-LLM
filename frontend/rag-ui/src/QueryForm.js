@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './QueryForm.css';
 
-function QueryForm({ provider, model, topK, file, summary }) {
+function QueryForm({ provider, model, topK, file, summary,embeddingProvider, embeddingModel }) {
     const [query, setQuery] = useState('');
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -36,7 +36,9 @@ function QueryForm({ provider, model, topK, file, summary }) {
                     query,
                     model,
                     top_k: topK,
-                    db_filename: file ? file.name : ''  // Use file name as db_filename
+                    db_filename: file ? file.name : '',  // Use file name as db_filename
+                    embedding_provider: embeddingProvider,  // Add embedding provider
+                    embedding_model: embeddingModel         // Add embedding model
                 }),
             });
             const data = await response.json();

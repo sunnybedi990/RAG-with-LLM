@@ -64,16 +64,26 @@ def extract_full_text_fitz(pdf_path):
 
 def extract_pdf_with_llama(pdf_path):
     """Extract tables and text using LlamaParse."""
-    parser = LlamaParse(result_type="markdown")
+    parser = LlamaParse(result_type="text")  # Try using plain_text for broader content capture
     file_extractor = {".pdf": parser}
     documents = SimpleDirectoryReader(input_files=[pdf_path], file_extractor=file_extractor).load_data()
-    return [str(doc) for doc in documents]  # Convert documents to strings
+    
+    # Convert each document to a string and join them
 
-def add_pdf_to_vector_db(pdf_path, db_path='vector_db.index', use_gpu=True, use_llama=False):
+    parsed_texts = [str(doc) for doc in documents]
+    #combined_text = "\n".join(parsed_texts)  # Join all document parts into one complete text
+    print(parsed_texts)
+
+
+    return parsed_texts  # Return the fully combined text
+
+
+def add_pdf_to_vector_db(pdf_path, db_path='vector_db.index', embedding_provider='sentence_transformers', embedding_model='all-mpnet-base-v2', use_gpu=True, use_llama=False, api_key=None):
     """Processes a PDF, extracts text and tables, and adds them to a vector database."""
     if use_llama and llama_available:
         print("Using LlamaParse for document extraction...")
         parsed_texts = extract_pdf_with_llama(pdf_path)
+        print(parsed_texts)
     else:
         print("Using regular extraction methods...")
         table_texts = extract_tables_camelot(pdf_path)
@@ -85,12 +95,16 @@ def add_pdf_to_vector_db(pdf_path, db_path='vector_db.index', use_gpu=True, use_
     else:
         print("No content extracted from the PDF.")
 
-    # Initialize VectorDB and add embeddings
-    db = VectorDB(dimension=384, use_gpu=use_gpu)
+    # Initialize VectorDB with the selected embedding provider and model
+    db = VectorDB(provider=embedding_provider, model_name=embedding_model, use_gpu=use_gpu, api_key=api_key)
     db.add_embeddings(parsed_texts)  # Add all extracted texts to VectorDB
+    print('pass1')
+    db.verify_index()
+    print('pass2')
     db.save_index(db_path)  # Save the index
 
     print(f"All data added to vector database and saved at {db_path}.")
+
 
 # Usage Example:
 if __name__ == "__main__":

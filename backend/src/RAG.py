@@ -11,7 +11,8 @@ import json
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-USE_GPU = os.getenv("USE_GPU", "false").lower() == "true"
+USE_GPU = os.getenv("USE_GPU", False).lower() == "true"
+print(USE_GPU)
 # Initialize Ollama Client
 ollama_client = Client(host='http://ollama:11434')
 # Define model mapping
@@ -150,67 +151,152 @@ def cancel_model_pull():
 def query():
     data = request.json
     provider = data.get('provider')
+    embedding_provider = data.get('embedding_provider')
+    embedding_model = data.get('embedding_model')
     query_text = data.get('query')
     model = data.get('model', 'openai')
     top_k = data.get('top_k', 3)
 
-    # Use the uploaded file's name to determine db_path
     db_path = f"/app/data/vector_db_{os.path.splitext(data.get('db_filename', 'default'))[0]}.index"
 
     try:
-        if provider == 'ollama':
-            cli_model_name = map_model_name(model)
-        else:
-            cli_model_name = model
-        response_text = query_vector_db(db_path=db_path, query=query_text, top_k=top_k, model=cli_model_name,provider=provider,use_gpu=USE_GPU)
+        cli_model_name = map_model_name(model) if provider == 'ollama' else model
+        response_text = query_vector_db(
+            db_path=db_path,
+            query=query_text,
+            top_k=top_k,
+            model=cli_model_name,
+            provider=provider,
+            embedding_provider=embedding_provider,
+            embedding_model=embedding_model,
+            use_gpu=USE_GPU
+        )
         return jsonify({"response": response_text})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Add endpoint for adding a PDF document to the vector database
+
 @app.route('/add', methods=['POST'])
 def add():
     if 'pdf' not in request.files:
         return jsonify({"error": "PDF file is required"}), 400
 
     pdf_file = request.files['pdf']
-    use_llama = request.form.get('use_llama', 'true').lower() == 'true'
+    use_llama = request.form.get('use_llama', 'false').lower() == 'true'
+    embedding_provider = request.form.get('embedding_provider')
+    embedding_model = request.form.get('embedding_model')
 
-    # Use the uploaded file's name as db_path
     db_path = f"/app/data/vector_db_{os.path.splitext(pdf_file.filename)[0]}.index"
     pdf_path = os.path.join("/tmp", pdf_file.filename)
     pdf_file.save(pdf_path)
-
+    print('USE GPU',USE_GPU)
     try:
-        add_pdf_to_vector_db(pdf_path=pdf_path, db_path=db_path, use_llama=use_llama,use_gpu=USE_GPU)
+        add_pdf_to_vector_db(
+            pdf_path=pdf_path,
+            db_path=db_path,
+            use_llama=use_llama,
+            embedding_provider=embedding_provider,
+            embedding_model=embedding_model,
+            use_gpu=USE_GPU
+        )
         return jsonify({"message": f"Document added to vector database at {db_path}."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-# Route for summarization
+
+
 @app.route('/summarize', methods=['POST'])
 def summarize():
     data = request.json
     provider = data.get('provider')
     model = data.get('model', 'openai')
+    embedding_provider = data.get('embedding_provider')
+    embedding_model = data.get('embedding_model')
     db_filename = data.get('db_filename')
 
-    # Ensure the vector database file path is correctly specified
     db_path = f"/app/data/vector_db_{os.path.splitext(db_filename)[0]}.index"
 
     try:
-        if provider == 'ollama':
-            cli_model_name = map_model_name(model)
-        else:
-            cli_model_name = model
-        # Retrieve chunks from the vector database
-        chunks = query_vector_db(db_path=db_path, query="*", top_k=20, model=cli_model_name,use_gpu=USE_GPU)  # Retrieve top 20 chunks
-
-        # Create a summary from these chunks
+        cli_model_name = map_model_name(model) if provider == 'ollama' else model
+        chunks = query_vector_db(
+            db_path=db_path,
+            query="*",
+            top_k=20,
+            model=cli_model_name,
+            provider=provider,
+            embedding_provider=embedding_provider,
+            embedding_model=embedding_model,
+            use_gpu=USE_GPU
+        )
         summary_text = summarize_with_llm(chunks, model, provider)
-
         return jsonify({"summary": summary_text})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# @app.route('/query', methods=['POST'])
+# def query():
+#     data = request.json
+#     provider = data.get('provider')
+#     query_text = data.get('query')
+#     model = data.get('model', 'openai')
+#     top_k = data.get('top_k', 3)
+
+#     # Use the uploaded file's name to determine db_path
+#     db_path = f"/app/data/vector_db_{os.path.splitext(data.get('db_filename', 'default'))[0]}.index"
+
+#     try:
+#         if provider == 'ollama':
+#             cli_model_name = map_model_name(model)
+#         else:
+#             cli_model_name = model
+#         response_text = query_vector_db(db_path=db_path, query=query_text, top_k=top_k, model=cli_model_name,provider=provider,use_gpu=USE_GPU)
+#         return jsonify({"response": response_text})
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+# # Add endpoint for adding a PDF document to the vector database
+# @app.route('/add', methods=['POST'])
+# def add():
+#     if 'pdf' not in request.files:
+#         return jsonify({"error": "PDF file is required"}), 400
+
+#     pdf_file = request.files['pdf']
+#     use_llama = request.form.get('use_llama', 'true').lower() == 'true'
+
+#     # Use the uploaded file's name as db_path
+#     db_path = f"/app/data/vector_db_{os.path.splitext(pdf_file.filename)[0]}.index"
+#     pdf_path = os.path.join("/tmp", pdf_file.filename)
+#     pdf_file.save(pdf_path)
+
+#     try:
+#         add_pdf_to_vector_db(pdf_path=pdf_path, db_path=db_path, use_llama=use_llama,use_gpu=USE_GPU)
+#         return jsonify({"message": f"Document added to vector database at {db_path}."})
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+    
+# # Route for summarization
+# @app.route('/summarize', methods=['POST'])
+# def summarize():
+#     data = request.json
+#     provider = data.get('provider')
+#     model = data.get('model', 'openai')
+#     db_filename = data.get('db_filename')
+
+#     # Ensure the vector database file path is correctly specified
+#     db_path = f"/app/data/vector_db_{os.path.splitext(db_filename)[0]}.index"
+
+#     try:
+#         if provider == 'ollama':
+#             cli_model_name = map_model_name(model)
+#         else:
+#             cli_model_name = model
+#         # Retrieve chunks from the vector database
+#         chunks = query_vector_db(db_path=db_path, query="*", top_k=20, model=cli_model_name,use_gpu=USE_GPU)  # Retrieve top 20 chunks
+
+#         # Create a summary from these chunks
+#         summary_text = summarize_with_llm(chunks, model, provider)
+
+#         return jsonify({"summary": summary_text})
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
