@@ -197,8 +197,6 @@ project-root/
 │   ├── .env                   # Backend configuration
 │   ├── start_server.sh        # Script to dynamically select Flask or FastAPI
 │
-├── data/                      # FAISS index files
-│   ├── vector_db_Baljindersingh_Bedi_Resume.index
 │
 └── LICENSE                    # Project license
 ```
