@@ -1,4 +1,4 @@
-# **RAG System for Document Query and Summarization**
+# **RAG System for Document Query and Summarization with Flask or FastAPI**
 
 This project is a Retrieval-Augmented Generation (RAG) system designed for querying and summarizing documents. It supports GPU and CPU environments, and the backend can run using either Flask (`RAG.py`) or FastAPI (`RAG_fastapi.py`). The frontend provides a user-friendly interface for uploading documents and interacting with the system.
 
