@@ -36,7 +36,7 @@ function QueryForm({ provider, model, topK, file, summary,embeddingProvider, emb
                     query,
                     model,
                     top_k: topK,
-                    db_filename: file ? file.name : '',  // Use file name as db_filename
+                    db_filename: file ? file.name.replace(' ', '_') : '',  // Replace spaces in file name
                     embedding_provider: embeddingProvider,  // Add embedding provider
                     embedding_model: embeddingModel         // Add embedding model
                 }),

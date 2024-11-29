@@ -32,7 +32,7 @@ def extract_tables_camelot(pdf_path):
 
         # Clean headers and rows
         df.columns = [re.sub(r'Unnamed.*', '', str(col)) for col in df.columns]
-        df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)  # Strip whitespace from strings
+        df = df.apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x) if col.dtype == 'object' else col)
         df = df.fillna("")
 
         for _, row in df.iterrows():

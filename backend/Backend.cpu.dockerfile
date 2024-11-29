@@ -25,4 +25,9 @@ RUN /opt/conda/bin/conda create -n rag_env python=3.11 -y && \
 
 COPY . .
 EXPOSE 5000
-CMD ["/opt/conda/envs/rag_env/bin/python", "src/RAG.py"]
+# Add the script for choosing between Flask and FastAPI
+COPY backend/start_server.sh /app/start_server.sh
+RUN chmod +x /app/start_server.sh
+
+# Default to Flask; can override with environment variable RAG_SERVER
+CMD ["/app/start_server.sh"]
