@@ -63,6 +63,38 @@ Below is a visual representation of the RAG system architecture and user interfa
 
 ---
 
+## **Environment Configuration**
+
+Before running the backend, create a `.env` file in the `backend` folder and add the following environment variables:
+
+```env
+# Authentication Keys
+LLAMA_CLOUD_API_KEY=          # API key for LLama Cloud
+OPENAI_API_KEY=               # API key for OpenAI
+GROQ_API_KEY=                 # API key for Groq
+
+# Vector Database Configuration
+VECTOR_DB_PATH=vector_dbs/    # Path to store vector databases
+USE_GPU=true                  # Set to "true" for GPU usage or "false" for CPU
+
+# Pinecone Configuration
+PINECONE_API_KEY=             # API key for Pinecone
+
+# Weaviate Configuration
+WEAVIATE_API_KEY=             # API key for Weaviate
+WEAVIATE_CLUSTER_URL=         # Cluster URL for Weaviate
+
+# Qdrant Configuration
+QDRANT_API_KEY=               # API key for Qdrant (optional)
+QDRANT_ADMIN_API_KEY=         # Admin API key for Qdrant (optional)
+QDRANT_CLUSTER_URL=           # Cluster URL for Qdrant (optional)
+```
+
+- **Note**: Replace the placeholder values with your actual API keys and paths.
+- Make sure the `VECTOR_DB_PATH` matches the directory where vector databases will be stored.
+
+---
+
 ### **Backend Setup**
 
 1. **Navigate to the backend directory**:
