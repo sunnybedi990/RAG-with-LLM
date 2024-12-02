@@ -156,6 +156,7 @@ def query():
     query_text = data.get('query')
     model = data.get('model', 'openai')
     top_k = data.get('top_k', 3)
+    db_type = data.get('db_type', 'faiss')  # Default to FAISS if not provided
 
     db_path = f"/app/data/vector_db_{os.path.splitext(data.get('db_filename', 'default'))[0]}.index"
 
@@ -163,6 +164,7 @@ def query():
         cli_model_name = map_model_name(model) if provider == 'ollama' else model
         response_text = query_vector_db(
             db_path=db_path,
+            db_type=db_type,
             query=query_text,
             top_k=top_k,
             model=cli_model_name,
@@ -185,6 +187,8 @@ def add():
     embedding_provider = request.form.get('embedding_provider')
     embedding_model = request.form.get('embedding_model')
     parser = request.form.get('parser_type')
+    db_type = request.form.get('db_type', 'faiss')  # Default to FAISS if not provided
+
     db_path = f"/app/data/vector_db_{os.path.splitext(pdf_file.filename)[0]}.index"
     pdf_path = os.path.join("/tmp", pdf_file.filename)
     pdf_file.save(pdf_path)
@@ -194,6 +198,8 @@ def add():
         add_pdf_to_vector_db(
             pdf_path=pdf_path,
             db_path=db_path,
+            db_type=db_type,
+
             use_llama=use_llama,
             embedding_provider=embedding_provider,
             embedding_model=embedding_model,
@@ -212,6 +218,7 @@ def summarize():
     embedding_provider = data.get('embedding_provider')
     embedding_model = data.get('embedding_model')
     db_filename = data.get('db_filename')
+    db_type = data.get('db_type', 'faiss')  # Default to FAISS if not provided
 
     db_path = f"/app/data/vector_db_{os.path.splitext(db_filename)[0]}.index"
 
@@ -219,6 +226,8 @@ def summarize():
         cli_model_name = map_model_name(model) if provider == 'ollama' else model
         chunks = query_vector_db(
             db_path=db_path,
+            db_type=db_type,
+
             query="*",
             top_k=20,
             model=cli_model_name,

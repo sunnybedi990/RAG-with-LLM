@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './QueryForm.css';
 
-function QueryForm({ provider, model, topK, file, summary,embeddingProvider, embeddingModel }) {
+function QueryForm({ provider, model, topK, file, summary,embeddingProvider, embeddingModel, dbType, dbConfig}) {
     const [query, setQuery] = useState('');
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -36,6 +36,8 @@ function QueryForm({ provider, model, topK, file, summary,embeddingProvider, emb
                     query,
                     model,
                     top_k: topK,
+                    db_type: dbType, // Pass selected vector database type
+                    db_config: dbConfig,
                     db_filename: file ? file.name.replace(' ', '_') : '',  // Replace spaces in file name
                     embedding_provider: embeddingProvider,  // Add embedding provider
                     embedding_model: embeddingModel         // Add embedding model

@@ -93,6 +93,8 @@ class QueryRequest(BaseModel):
     model: str = "openai"
     top_k: int = 3
     db_filename: str
+    db_type:str = 'faiss',
+    db_config: dict
 
 class SummarizeRequest(BaseModel):
     provider: str
@@ -100,6 +102,8 @@ class SummarizeRequest(BaseModel):
     embedding_provider: str
     embedding_model: str
     db_filename: str
+    db_type: str = 'faiss'
+    db_config: dict
 
 # Routes
 @app.get("/api/check-model")
@@ -129,6 +133,8 @@ async def query(data: QueryRequest):
         # Perform query
         response_text = query_vector_db(
             db_path=db_path,
+            db_type=data.db_type,
+            db_config=data.db_config,
             query=data.query,
             top_k=data.top_k,
             model=cli_model_name,
@@ -149,57 +155,87 @@ async def add(
     pdf: UploadFile = File(...),
     embedding_provider: str = Form(...),
     embedding_model: str = Form(...),
-    parser_type: str = Form(...)
+    parser_type: str = Form(...),
+    db_type: str = Form(...),
+    db_config: str = Form(...)
 ):
     try:
+        # Save the uploaded PDF temporarily
         pdf_path = f"/tmp/{pdf.filename}"
         with open(pdf_path, "wb") as f:
             f.write(await pdf.read())
-        
+
+        # Determine vector database file path
         db_path = os.path.join(VECTOR_DBS_DIR, f"vector_db_{os.path.splitext(pdf.filename.replace(' ', '_'))[0]}.index")
-        
+        print(f"Adding PDF to vector database at {db_path}")
 
+        # Choose parser type
+        use_llama = parser_type.lower() == "llamaparser"
 
-        print(db_path)
-        use_llama = parser_type == "LlamaParser"
-
+        # Add the PDF to the vector database
         add_pdf_to_vector_db(
             pdf_path=pdf_path,
             db_path=db_path,
+            db_type=db_type,
+            db_config=db_config,
+
             use_llama=use_llama,
             embedding_provider=embedding_provider,
             embedding_model=embedding_model,
             use_gpu=USE_GPU,
         )
-        print(f"FAISS index created at: {db_path}")
 
+        # Verify database creation
         if not os.path.exists(db_path):
             raise HTTPException(status_code=500, detail="Failed to create vector database.")
-        return {"message": f"Document added to vector database at {db_path}."}
+        
+        return {"message": f"Document successfully added to vector database at {db_path}."}
     except Exception as e:
-        print(f"Error adding document: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the error and raise an HTTP exception
+        print(f"Error in /add: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error adding document: {str(e)}")
 
 
 @app.post("/summarize")
 async def summarize(data: SummarizeRequest):
     try:
-        cli_model_name = map_model_name(data.model) if data.provider == "ollama" else data.model
-        db_path = f"/app/data/vector_db_{os.path.splitext(data.db_filename)[0]}.index"
-        
-        chunks = query_vector_db(
+        # Map model name for Ollama, if needed
+        cli_model_name = map_model_name(data.model) if data.provider.lower() == "ollama" else data.model
+
+        # Construct the database path
+        db_path = os.path.join(VECTOR_DBS_DIR, f"vector_db_{os.path.splitext(data.db_filename)[0]}.index")
+
+        # Query all data from the vector database
+        results = query_vector_db(
             db_path=db_path,
-            query="*",
-            top_k=20,
+            db_type=data.db_type,
+            db_config=data.db_config,
+            query="*",  # Retrieve all content
+            top_k=1000,  # Not limiting the number of results
             model=cli_model_name,
             provider=data.provider,
             embedding_provider=data.embedding_provider,
             embedding_model=data.embedding_model,
             use_gpu=USE_GPU,
         )
-        summary_text = summarize_with_llm(chunks, data.model, data.provider)
+        if not results:
+            raise HTTPException(status_code=404, detail="No content found for summarization.")
+
+        # Combine all chunks (consider tuples or text-only results)
+        #chunks_text = " ".join(results)
+
+        # Generate summary using LLM
+        summary_text = summarize_with_llm(results, cli_model_name, data.provider)
         return {"summary": summary_text}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log detailed errors for debugging
+        print(f"Error in summarize: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to summarize document: {str(e)}")
 
 # Run FastAPI app with a server like Uvicorn for production
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)

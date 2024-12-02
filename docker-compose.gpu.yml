@@ -17,6 +17,27 @@ services:
       - ollama:/root/.ollama
     ports:
       - "11435:11434"
+  weaviate:
+    command:
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8080'
+    - --scheme
+    - http
+    image: cr.weaviate.io/semitechnologies/weaviate:1.27.6
+    ports:
+    - 8080:8080
+    - 50051:50051
+    volumes:
+    - weaviate_data:/var/lib/weaviate
+    restart: on-failure:0
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      ENABLE_API_BASED_MODULES: 'true'
+      CLUSTER_HOSTNAME: 'node1'
 
   backend:
     build:
@@ -44,6 +65,8 @@ services:
       - "5000:5000"
     depends_on:
       - ollama
+      - milvus
+
 
   frontend:
     build:
@@ -55,6 +78,20 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
 
+  milvus:
+    image: milvusdb/milvus:latest
+    container_name: milvus-standalone
+    environment:
+      - TZ=UTC
+    ports:
+      - "19530:19530"  # gRPC port
+      - "9091:9091"    # REST API
+    volumes:
+      - milvus-data:/var/lib/milvus
+
 volumes:
   index_data:
   ollama:
+  milvus-data:
+  weaviate_data:
+

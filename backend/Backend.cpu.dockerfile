@@ -16,17 +16,20 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
     rm ~/miniconda.sh && \
     /opt/conda/bin/conda clean -a
 
-COPY backend/requirements.txt .
+    
+# Copy the requirements file from the backend directory
+COPY requirements.txt /app/requirements.txt
+
 RUN /opt/conda/bin/conda create -n rag_env python=3.11 -y && \
     /opt/conda/bin/conda run -n rag_env pip install --upgrade pip && \
-    /opt/conda/bin/conda run -n rag_env pip install -r requirements.txt && \
+    /opt/conda/bin/conda run -n rag_env pip install -r /app/requirements.txt && \
     /opt/conda/bin/conda run -n rag_env conda install -c pytorch faiss-cpu=1.9.0 -y && \
     /opt/conda/bin/conda clean --all
 
 COPY . .
 EXPOSE 5000
 # Add the script for choosing between Flask and FastAPI
-COPY backend/start_server.sh /app/start_server.sh
+COPY start_server.sh /app/start_server.sh
 RUN chmod +x /app/start_server.sh
 
 # Default to Flask; can override with environment variable RAG_SERVER

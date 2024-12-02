@@ -16,3 +16,16 @@ llama-index-readers-file
 python-dotenv
 tensorflow_hub
 gensim
+pymilvus
+pinecone
+qdrant-client
+weaviate
+fastapi[standard]
+weaviate-client
+spacy
+layoutparser
+pdf2image
+pytesseract
+pdfplumber
+"numpy<2"
+#python -m spacy download en_core_web_sm

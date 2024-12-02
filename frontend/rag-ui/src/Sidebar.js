@@ -75,6 +75,8 @@ const embeddingModels = {
     }
 };
 
+const vectorDbOptions = ["faiss", "milvus", "pinecone", "qdrant", "weaviate"]; // Available vector databases
+
 
 function Sidebar({
     provider, setProvider, model, setModel,
@@ -82,7 +84,11 @@ function Sidebar({
     embeddingModel, setEmbeddingModel,
     selectedCategory, setSelectedCategory,
     selectedSubCategory, setSelectedSubCategory,
-    topK, setTopK, file, setFile, onSummarize
+    topK, setTopK, 
+    dbType, setDbType,
+    dbConfig, setDbConfig, // Add dbType and its setter
+    dbConfigFields,
+    file, setFile, onSummarize
 }) {
 
     const [uploadedFileName, setUploadedFileName] = useState("");
@@ -90,12 +96,13 @@ function Sidebar({
     const [downloadStatus, setDownloadStatus] = useState("");
     const [useLlamaParser, setUseLlamaParser] = useState(false); // State for parser selection
 
-
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         setFile(selectedFile);
         setUploadedFileName(selectedFile ? selectedFile.name : "");
     };
+    
+    
 
     const handleFileUpload = async () => {
         if (!file) {
@@ -108,6 +115,8 @@ function Sidebar({
         formData.append('embedding_provider', selectedSubCategory);
         formData.append('embedding_model', embeddingModel);
         formData.append('parser_type', useLlamaParser ? 'LlamaParser' : 'CustomParser'); // Add parser type to form data
+        formData.append('db_type', dbType); // Include vector database type
+        formData.append('db_config', JSON.stringify(dbConfig)); // Pass DB configuration
 
 
         try {
@@ -140,7 +149,43 @@ function Sidebar({
         setFile(droppedFile);
         setUploadedFileName(droppedFile ? droppedFile.name : "");
     };
+    const handleDbTypeChange = (e) => {
+        setDbType(e.target.value); // Update the selected vector database type
+        //setDbConfig(getDefaultDbConfig(newDbType)); // Reset config to defaults for the selected dbType
 
+    };
+
+    const renderDbConfigFields = () => {
+        const selectedFields = dbConfigFields[dbType] || {}; // Fetch fields for the selected dbType
+    
+        return Object.entries(selectedFields).map(([key, options]) => (
+            <div key={key} className="sidebar-section">
+                <label className="sidebar-label">{key.replace('_', ' ').toUpperCase()}</label>
+                {Array.isArray(options) ? (
+                    <select
+                        value={dbConfig[key] || options[0]} // Default to the first option
+                        onChange={(e) => setDbConfig((prev) => ({ ...prev, [key]: e.target.value }))}
+                        className="sidebar-select"
+                    >
+                        {options.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <input
+                        type="text"
+                        value={dbConfig[key] || ""}
+                        onChange={(e) => setDbConfig((prev) => ({ ...prev, [key]: e.target.value }))}
+                        className="sidebar-input"
+                    />
+                )}
+            </div>
+        ));
+    };
+    
+    
     const handleProviderChange = (event) => {
         const selectedProvider = event.target.value;
         setProvider(selectedProvider);
@@ -257,6 +302,35 @@ function Sidebar({
                     <span>{uploadedFileName}</span>
                 </div>
             )}
+             {/* Vector Database Selection */}
+             <div className="group-box">
+                <h4 className="group-title">Vector Database Settings</h4>
+                <div className="sidebar-section">
+                    <label className="sidebar-label">
+                        Select Vector Database
+                        <span className="help-icon" title="Choose the database where embeddings will be stored.">?</span>
+
+                        </label>
+                    <select
+                        value={dbType}
+                        onChange={handleDbTypeChange}
+                        className="sidebar-select"
+                    >
+                        {vectorDbOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="sidebar-section">
+                <label className="sidebar-label">
+                Database Configuration</label>
+                {renderDbConfigFields()}
+            </div>
+            </div>
+            
+
             <div className="group-box">
                 <h4 className="group-title">Parser Settings</h4>
                 <div className="sidebar-section">
