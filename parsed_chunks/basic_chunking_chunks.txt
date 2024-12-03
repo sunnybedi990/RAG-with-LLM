@@ -1,0 +1,33 @@
+Chunk 1:
+Baljindersingh Surendrasingh Bedi P: (708) 573-9951 LinkedIn E: baljinderbedi409@gmail.com Python | R | Java | ML Algorithms | Data Preprocessing | Visualization | Model Evaluation & Validation | TensorFlow PyTorch | scikit-learn | Keras | Hadoop | Spark | Flink | Version Control (Git) | NPL
+
+Chunk 2:
+| Bagging and Boosting AI Engineer | ML Engineer | AI/ML Researcher Summary: - Graduated with a Master of Science in Artificial Intelligence from DePaul University, with expertise in Natural Language Processing, Computer Vision, Neural Networks, and Deep Learning through rigorous coursework and hands-on projects. - Demonstrated ability to rapidly acquire new skills and adapt to changing environments, recognized for effective problem-solving and applying academic knowledge to practical scenarios.
+
+Chunk 3:
+- Highly motivated to start as a Junior AI & Machine Learning Engineer, aiming to contribute effectively to innovative projects while continuously advancing technical skills and industry knowledge. Education: - DePaul University, Chicago, IL: Master of Science in Artificial Intelligence |GPA: 3.5 June 2024 - The Institute of Chartered Accountants of India, India: CA Intermediate, Tax Law/Taxation |GPA: 3.6 June 2018 - The Gujarat University, India:
+
+Chunk 4:
+Bachelor of Commerce – Accounting, Finance, Taxation March 2016 Work Experience Artificial Intelligence Engineer Intern | RadicalX, New York June 2023 – Aug 2023 - Advocated for the use of open-source models to uphold data privacy standards, ensuring ethical practices in AI development. - Implemented FAISS for managing high-dimensional vector databases, significantly enhancing data retrieval efficiency by 40%.
+
+Chunk 5:
+- Developed an AI system leveraging the OpenAI API with a team of five members, establishing a comprehensive knowledge base spanning diverse subject areas and applications, significantly enhancing information retrieval and user interaction. - Enhanced question-answer (QA) formats and synthesized a vital dataset for model fine-tuning, significantly contributing to improved accuracy and reducing errors by 40% and 25%, respectively, leading to better overall performance.
+
+Chunk 6:
+- Conducted a comprehensive comparative performance analysis between BERT and LLama2 models, demonstrating LLama2's superior capability in managing complex queries and outperforming BERT in various evaluation metrics. Project Experience - Hybrid 3D Pooling CNN for Gesture Recognition: Developed a CNN model enhancing gesture recognition in low-resolution videos; achieved 93% accuracy, published findings in a collaborative research paper.
+
+Chunk 7:
+– Computer Vision 3D - Computer Vision for 3D Reconstruction: Developed a 3D reconstruction model from RGB and depth images as part of my master thesis, focusing on the accuracy and efficiency of the reconstruction process. – Computer Vision 3D - AI-Driven Dino Game Using CNN: Developed an autonomous game player for the Chrome Dino game using convolutional neural network and reinforcement learning techniques.
+
+Chunk 8:
+– Computer Vision 2D - Tutor Buddy: Teaching using LLM: Created a personalized tutoring system using LLMs like LLama3, LLama2, and Gemini, incorporating personalized algorithms for adaptive learning. – Generative AI and LLMs - RAG Application for Chatbots: Designed a Retrieval-Augmented Generation system for chatbots, integrating FAISS for efficient data retrieval and large language models for generating accurate responses based on user queries.
+
+Chunk 9:
+– Generative AI and LLMs - Predicting Bank Loan Defaults Using Machine Learning: Employed various machine learning algorithms including regression models and ensemble methods to predict the likelihood of loan defaults. – Predictions using Machine Learning - Retail rocket Recommender System Data Analysis: Analyzed e-commerce behavioral data using item-based, user based, and hybrid recommendation models to uncover patterns and improve product recommendations.
+
+Chunk 10:
+– Recommendation System using ML Technical Skills - Programming Languages and Frameworks: Python, Java, PHP, SQL, PyTorch, TensorFlow - Artificial Intelligence and Machine Learning: Artificial Intelligence, Machine Learning, Natural Language Processing (NLP), Computer Vision, Neural Networks - Models and Learning Techniques: Transformers, Large Language Models, Supervised & Unsupervised Learning, Reinforcement Learning - Machine Learning Libraries and Techniques: Linear Regression, Decision Trees, Bagging and Boosting, XGBoost, Deep Neural Networks (DNN), Recurrent Neural Networks (RNN) - Data Science and Analysis:
+
+Chunk 11:
+Data Visualization, Feature Engineering, Scikit-Learn, OpenCV, Tesseract OCR Engine - Algorithms and Data Structures: Algorithm Design, Advanced Algorithms, Database Structures, Data Structures
+

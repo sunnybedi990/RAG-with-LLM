@@ -7,17 +7,14 @@ from embedding_initializer import initialize_embedding_model
 from adapters import FAISSVectorDB, MilvusVectorDB, PineconeVectorDB, QdrantVectorDB, WeaviateVectorDB
 import yaml
 import json
+import numpy as np
+from utils import extract_name_from_path, pad_embedding
+
 
 def load_config():
     """Load vector database configuration from YAML file."""
     with open("config.yaml", "r") as f:
         return yaml.safe_load(f)
-
-
-def extract_name_from_path(db_path):
-    """Extract the collection or index name from the database path."""
-    return os.path.splitext(os.path.basename(db_path))[0]
-
 
 def initialize_vector_db(db_type, db_config, embedding_dimension, db_path=None):
     """
@@ -95,45 +92,6 @@ def initialize_vector_db(db_type, db_config, embedding_dimension, db_path=None):
     else:
         raise ValueError(f"Unsupported database type: {db_type}")
     
-    
-def get_vector_db_adapter(db_type, **kwargs):
-    """Returns the appropriate vector database adapter based on `db_type`."""
-    filtered_kwargs = {
-        "faiss": {"use_gpu","dimension"},
-        "milvus": {"dimension", "collection_name", "host", "port"},
-        "pinecone": {"api_key", "environment", "index_name","dimension"},
-        "qdrant": {"collection_name", "dimension", "host", "port"},
-        "weaviate": {"mode","host", "class_name", "dimension"},
-    }
-
-    db_classes = {
-        "faiss": FAISSVectorDB,
-        "milvus": MilvusVectorDB,
-        "pinecone": PineconeVectorDB,
-        "qdrant": QdrantVectorDB,
-        "weaviate": WeaviateVectorDB,
-    }
-    
-
-    if db_type not in db_classes:
-        raise ValueError(f"Unknown database type: {db_type}")
-#    If Pinecone, ensure `index_name` is included
-    if db_type == "pinecone":
-        if "index_name" not in kwargs or not kwargs["index_name"]:
-            raise ValueError("Pinecone requires an `index_name` argument.")
-    # Fetch Pinecone API key from environment if db_type is Pinecone and it's not provided in kwargs
-    if db_type == "pinecone" and "api_key" not in kwargs:
-        kwargs["api_key"] = os.getenv("PINECONE_API_KEY")
-        if not kwargs["api_key"]:
-            raise ValueError("Pinecone API key not found in environment variables. Set 'PINECONE_API_KEY'.")
-    # Ensure dimension is included
-    if "dimension" not in kwargs or not kwargs["dimension"]:
-        raise ValueError(f"Missing 'dimension' for {db_type} initialization.")
-    # Filter kwargs for the selected db_type
-    filtered_args = {k: v for k, v in kwargs.items() if k in filtered_kwargs[db_type]}
-    print(f"Filtered arguments for {db_type}: {filtered_args}")
-
-    return db_classes[db_type](**filtered_args)
 
 class VectorDB:
     def __init__(self, db_path,db_type, db_config, provider, model_name, use_gpu=True, api_key=None, **kwargs):
@@ -182,14 +140,51 @@ class VectorDB:
 
         except Exception as e:
             raise ValueError(f"Error generating embedding: {e}")
+    def process_clip_embedding(self, clip_embedding, dimension):
+        """
+        Adapts a CLIP embedding to match the dimension of text embeddings.
+        - `clip_embedding`: The original CLIP embedding (NumPy array or tensor).
+        - `dimension`: Target dimensionality (e.g., 768).
+        """
+        try:
+            # Flatten CLIP embedding if it's multi-dimensional
+            if len(clip_embedding.shape) > 1:
+                clip_embedding = clip_embedding.flatten()
 
-    def add_embeddings(self, texts, embeddings=None, batch_size=32, **kwargs):
+            # Ensure consistent dimensions
+            if clip_embedding.shape[-1] != dimension:
+                clip_embedding = pad_embedding(clip_embedding, dimension)
+
+            return np.array(clip_embedding, dtype='float32')
+        except Exception as e:
+            raise ValueError(f"Error adapting CLIP embedding: {e}")
+
+
+    def add_embeddings(self, texts, embeddings=None, clip_embeddings=None, batch_size=32, **kwargs):
         """
         Adds embeddings to the vector database.
         If embeddings are not provided, they will be generated internally.
         """
         if embeddings is None:
             embeddings = self._generate_embeddings(texts)
+       
+        if clip_embeddings is not None:
+            # Ensure each CLIP embedding is adapted to match the expected dimension
+            clip_embeddings = [
+                self.process_clip_embedding(clip_embedding, self.dimension) for clip_embedding in clip_embeddings
+            ]
+            clip_embeddings = np.array(clip_embeddings, dtype='float32')
+            print(clip_embeddings.shape)
+            if len(clip_embeddings.shape) == 3:
+                clip_embeddings = clip_embeddings.squeeze(axis=1)  # Remove singleton dimension
+
+            # Combine embeddings and clip_embeddings
+            if embeddings is None:
+                embeddings = clip_embeddings  # Use clip_embeddings if no other embeddings exist
+            else:
+                embeddings = np.vstack((embeddings, clip_embeddings))  # Combine embeddings
+                texts += [f"clip_embedding_{i}" for i in range(len(clip_embeddings))]  # Placeholder metadata for CLIP
+    
 
         # Check backend type and handle accordingly
         if isinstance(self.db, FAISSVectorDB):

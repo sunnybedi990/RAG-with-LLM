@@ -31,7 +31,8 @@ def RAG_with_groq(prompt, selected_model=''):
 
 def Rag_with_ollama(prompt, selected_model=None):
     """Function to perform RAG using Ollama API."""
-    client = Client(host='http://ollama:11434')
+    client = Client(host='http://localhost:11434')
+   
 
     if not selected_model:
         print("Error: Must provide a model name for Ollama.")

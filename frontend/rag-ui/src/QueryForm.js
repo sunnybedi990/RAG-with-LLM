@@ -44,7 +44,27 @@ function QueryForm({ provider, model, topK, file, summary,embeddingProvider, emb
                 }),
             });
             const data = await response.json();
-            const botMessage = { role: 'bot', content: data.response || "No response from model." };
+            //console.log(data)
+            let botMessage;
+            console.log('data:', data);
+            console.log('data.chart_image_path:', data.chart_image_path);
+            console.log('Type of data.chart_image_path:', typeof data.chart_image_path);
+
+            if (data.response && data.response.chart_image_path) {
+                // If the response contains a valid image path
+                botMessage = {
+                    role: 'bot',
+                    content: data.response.chart_type,
+                    image: data.response.chart_image_path.trim(), // Access nested property
+                };
+                console.log('Valid image path:', data.response.chart_image_path);
+            } else {
+                botMessage = {
+                    role: 'bot',
+                    content: data.response || 'No response from model.',
+                };
+            }
+            
             setMessages((prevMessages) => [...prevMessages, botMessage]);
         } catch (error) {
             const errorMessage = { role: 'error', content: 'Error: Unable to get response from the server.' };
@@ -57,14 +77,25 @@ function QueryForm({ provider, model, topK, file, summary,embeddingProvider, emb
     return (
         <div className="query-form">
             <div className="chat-area">
-                {messages.map((msg, index) => (
-                    <div key={index} className={`message ${msg.role}`}>
-                        {msg.role === 'bot'
-                            ? msg.content.split(/\n\n/).map((paragraph, i) => (
-                                <p key={i} style={{ marginBottom: '10px' }}>{paragraph}</p>
-                            ))
-                            : msg.content}
-                    </div>
+            {messages.map((msg, index) => (
+                <div key={index} className={`message ${msg.role}`}>
+                    {msg.role === 'bot' && msg.image ? (
+                        <>
+                            <p>{msg.content}</p>
+                            <img
+                                src={`http://localhost:5000/static/${msg.image}`} // Adjust the path based on your server setup
+                                alt="Generated Chart"
+                                style={{ maxWidth: '100%', marginTop: '10px' }}
+                            />
+                        </>
+                    ) : typeof msg.content === 'string' ? (
+                        msg.content.split(/\n\n/).map((paragraph, i) => (
+                            <p key={i} style={{ marginBottom: '10px' }}>{paragraph}</p>
+                        ))
+                    ) : (
+                        <p>{JSON.stringify(msg.content)}</p> // Render non-string content safely
+                    )}
+                </div>
                 ))}
                 {/* Dummy div for scroll-to-bottom */}
                 <div ref={bottomRef} />

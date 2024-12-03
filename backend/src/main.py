@@ -1,39 +1,9 @@
 import argparse
 from VectorDB import VectorDB
 from add_to_vector_db import add_pdf_to_vector_db
-from rag_models import RAG_with_groq, Rag_with_ollama, RAG_with_openai  # Import the RAG functions from the other file
-from adapters import FAISSVectorDB, MilvusVectorDB, PineconeVectorDB, QdrantVectorDB, WeaviateVectorDB
-
-
-
-    
-# def query_vector_db(db_path,db_type, query, top_k=5, model="openai",provider='', embedding_provider='', embedding_model='',use_gpu=False):
-#     """Loads the vector database, performs a search query, and uses the specified model for response generation."""
-#     db = get_vector_db_adapter(db_type, provider=embedding_provider, model_name=embedding_model, use_gpu=use_gpu)
-#     # Skip loading for databases like Pinecone
-#     if db_type != "pinecone":
-#         db.load_index(db_path)
-#     print(f"Querying the vector database with: '{query}'")
-#     results = db.search(query, top_k=top_k)
-#     print(results)
-#     # Combine results into a single prompt
-#     prompt = f"User's query: {query}\nRelevant information:\n" + "\n".join([text for text, score in results])
-#     response = ""
-    
-#     if provider.lower() == "groq":
-#         response = RAG_with_groq(prompt,model)
-#     elif provider.lower() == "ollama":
-#         response = Rag_with_ollama(prompt,model)
-#     elif provider.lower() == "openai":
-#         response = RAG_with_openai(prompt,model)
-#     else:
-#         print(f"Error: Unsupported model '{model}' specified.")
-#         return
-    
-#     print("\nResponse from the model:")
-#     print(response)
-#     return response
-
+from llm_response.llm_utils import generate_response
+from llm_response.chart_parser import parse_response_and_generate_chart
+from llm_response.prompt import Prompt
 
 def query_vector_db(db_path, db_type,db_config, query, top_k=5, model="openai", provider='', embedding_provider='', embedding_model='', use_gpu=False):
     """
@@ -76,34 +46,48 @@ def query_vector_db(db_path, db_type,db_config, query, top_k=5, model="openai", 
     if not results:
         print("No results found in the vector database.")
         return "No relevant information found."
+    # Check if the query asks for a graph or chart
+    is_graph_request = "graph" in query.lower() or "chart" in query.lower()
 
     # Format the results into a prompt for the LLM
     if isinstance(results[0], tuple) and len(results[0]) == 2:
         # Results include both text and score
-        prompt = f"User's query: {query}\nRelevant information:\n" + "\n".join(
-            [f"{text} (score: {score:.2f})" for text, score in results]
-        )
+        formatted_results = "\n".join([f"{text} (score: {score:.2f})" for text, score in results])
     else:
         # Results include only text
-        prompt = f"User's query: {query}\nRelevant information:\n" + "\n".join(
-            [f"{text}" for text in results]
-        )
+        formatted_results = "\n".join([f"{text}" for text in results])
+    
+    task_type = "chart" if is_graph_request else "query"
+    prompt = Prompt(query=query, context=formatted_results, task_type=task_type).generate_prompt()
 
     # Generate response using the specified LLM
     response = generate_response(prompt, model, provider)
+
+    if is_graph_request:
+        chart_path, chart_type = parse_response_and_generate_chart(response)
+        if chart_path:
+            return {"chart_type": chart_type, "chart_image_path": chart_path}
+        else:
+            return f"LLM response: {response}"
+    # if is_graph_request:
+    #     # Modify prompt for chart data
+    #     prompt = f"User's query: {query}\nRelevant information:\n{formatted_results}\n" \
+    #              "Based on the trend, suggest the best chart type and provide the data in JSON format suitable for creating the chart. Include the chart type and label."
+    # else:
+    #     # Standard prompt
+    #     prompt = f"User's query: {query}\nRelevant information:\n{formatted_results}"
+
+    # # Generate response using the specified LLM
+    # response = generate_response(prompt, model, provider)
+
+    # if is_graph_request:
+    #     chart_path, chart_type = parse_response_and_generate_chart(response)
+    #     if chart_path:
+    #         return {"chart_type":chart_type,"chart_image_path": chart_path}
+    #     else:
+    #         return f"LLM response: {response}"
+
     return response
-
-
-def generate_response(prompt, model, provider):
-    """Generates a response using the specified LLM provider."""
-    if provider.lower() == "groq":
-        return RAG_with_groq(prompt, model)
-    elif provider.lower() == "ollama":
-        return Rag_with_ollama(prompt, model)
-    elif provider.lower() == "openai":
-        return RAG_with_openai(prompt, model)
-    else:
-        raise ValueError(f"Unsupported provider: {provider}")
 
 
 def summarize_with_llm(chunks, model, provider):
@@ -118,7 +102,7 @@ def summarize_with_llm(chunks, model, provider):
     """
     try:
         # Create a summarization prompt
-        prompt = f"Summarize the following text:\n\n{chunks}"
+        prompt = Prompt(context=chunks, task_type="summarization").generate_prompt()
 
         # Generate summary using the specified LLM provider
         return generate_response(prompt, model, provider)
@@ -138,7 +122,6 @@ def main():
     parser.add_argument("--model", type=str, default="openai", help="Model to use for response generation: 'groq', 'ollama', or 'openai'")
     parser.add_argument("--use_gpu", action='store_true', help="Use GPU for Faiss indexing and querying")
 
-
     args = parser.parse_args()
 
     if args.mode == "add":
@@ -146,11 +129,11 @@ def main():
             print("Error: PDF path is required in 'add' mode.")
             return
         add_pdf_to_vector_db(
-            args.pdf, 
-            db_path=args.db_path, 
-            db_type=args.db_type, 
-            embedding_provider=args.embedding_provider, 
-            embedding_model=args.embedding_model, 
+            args.pdf,
+            db_path=args.db_path,
+            db_type=args.db_type,
+            embedding_provider=args.embedding_provider,
+            embedding_model=args.embedding_model,
             use_gpu=args.use_gpu
         )
     elif args.mode == "query":
@@ -158,14 +141,15 @@ def main():
             print("Error: Query is required in 'query' mode.")
             return
         query_vector_db(
-            args.db_path, 
-            db_type=args.db_type, 
-            query=args.query, 
-            top_k=args.top_k, 
-            model=args.model, 
-            provider=args.model, 
-            embedding_provider=args.embedding_provider, 
-            embedding_model=args.embedding_model, 
+            args.db_path,
+            db_type=args.db_type,
+            db_config=None,  # Provide appropriate config if necessary
+            query=args.query,
+            top_k=args.top_k,
+            model=args.model,
+            provider=args.model,
+            embedding_provider=args.embedding_provider,
+            embedding_model=args.embedding_model,
             use_gpu=args.use_gpu
         )
 

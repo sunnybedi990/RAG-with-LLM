@@ -2,17 +2,21 @@ import os
 import time
 import traceback
 from fastapi import FastAPI, HTTPException, UploadFile, Form, Depends, File
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from main import query_vector_db, add_pdf_to_vector_db, summarize_with_llm  # Ensure these functions are imported
 from ollama import Client
 import nest_asyncio
+from pydantic import BaseModel
 
-nest_asyncio.apply()
-
+#nest_asyncio.apply()
+class PullModelRequest(BaseModel):
+    model: str
 # Set the base directory to the backend folder
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+CHARTS_DIR = os.path.join(BASE_DIR, "src/charts")  # Adjust the path based on your structure
 
 # Define the vector_dbs directory path
 VECTOR_DBS_DIR = os.path.join(BASE_DIR, "vector_dbs")
@@ -35,7 +39,7 @@ USE_GPU = os.getenv("USE_GPU", False).lower() == "true"
 print(USE_GPU)
 
 # Initialize Ollama Client
-ollama_client = Client(host='http://ollama:11434')
+ollama_client = Client(host='http://localhost:11434')
 
 # Define model mapping
 def map_model_name(model_name: str) -> str:
@@ -73,6 +77,8 @@ async def pull_model(model_name: str):
         for line in ollama_client.pull(cli_model_name):
             yield line + "\n"
             time.sleep(0.1)
+        yield 'Model pull completed.'
+
     except Exception as e:
         yield f"Error pulling model: {e}\n"
 
@@ -113,14 +119,19 @@ async def check_model(model: str):
     return {"installed": False}
 
 @app.post("/api/pull-model")
-async def pull_model_route(model: str):
-    return StreamingResponse(pull_model(model), media_type="text/plain")
+async def pull_model_route(request: PullModelRequest):
+#    print(model)
+    return StreamingResponse(pull_model(request.model), media_type="text/plain")
 
 @app.post("/api/delete-model")
 async def delete_model_route(model: str):
     message = delete_model(model)
     return {"message": message}
 
+
+# Ensure the directory exists
+# Mount the static files directory
+app.mount("/static", StaticFiles(directory=CHARTS_DIR), name="static")
 @app.post("/query")
 async def query(data: QueryRequest):
     try:
