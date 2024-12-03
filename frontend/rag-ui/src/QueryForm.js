@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from "remark-gfm";
+
 import './QueryForm.css';
 
-function QueryForm({ provider, model, topK, file, summary,embeddingProvider, embeddingModel, dbType, dbConfig}) {
+function QueryForm({ provider, model, topK, file, summary, embeddingProvider, embeddingModel, dbType, dbConfig }) {
     const [query, setQuery] = useState('');
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const bottomRef = useRef(null); // Reference to dummy div for auto-scrolling
-     // Scroll to bottom whenever messages change
-     useEffect(() => {
+    // Scroll to bottom whenever messages change
+    useEffect(() => {
         if (bottomRef.current) {
             bottomRef.current.scrollIntoView({ behavior: 'smooth' });
         }
@@ -64,7 +67,7 @@ function QueryForm({ provider, model, topK, file, summary,embeddingProvider, emb
                     content: data.response || 'No response from model.',
                 };
             }
-            
+
             setMessages((prevMessages) => [...prevMessages, botMessage]);
         } catch (error) {
             const errorMessage = { role: 'error', content: 'Error: Unable to get response from the server.' };
@@ -77,25 +80,95 @@ function QueryForm({ provider, model, topK, file, summary,embeddingProvider, emb
     return (
         <div className="query-form">
             <div className="chat-area">
-            {messages.map((msg, index) => (
-                <div key={index} className={`message ${msg.role}`}>
-                    {msg.role === 'bot' && msg.image ? (
-                        <>
-                            <p>{msg.content}</p>
-                            <img
-                                src={`http://localhost:5000/static/${msg.image}`} // Adjust the path based on your server setup
-                                alt="Generated Chart"
-                                style={{ maxWidth: '100%', marginTop: '10px' }}
-                            />
-                        </>
-                    ) : typeof msg.content === 'string' ? (
-                        msg.content.split(/\n\n/).map((paragraph, i) => (
-                            <p key={i} style={{ marginBottom: '10px' }}>{paragraph}</p>
-                        ))
-                    ) : (
-                        <p>{JSON.stringify(msg.content)}</p> // Render non-string content safely
-                    )}
-                </div>
+                {messages.map((msg, index) => (
+                    <div key={index} className={`message ${msg.role}`}>
+                        {msg.role === 'bot' && msg.image ? (
+                            <>
+                                <p>{msg.content}</p>
+                                <img
+                                    src={`http://localhost:5000/static/${msg.image}`} // Adjust the path based on your server setup
+                                    alt="Generated Chart"
+                                    style={{ maxWidth: '100%', marginTop: '10px' }}
+                                />
+                            </>
+                        ) : (
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    p: ({ children }) => (
+                                        <p style={{ marginBottom: "1em", lineHeight: "1.6" }}>{children}</p>
+                                    ),
+                                    ul: ({ children }) => (
+                                        <ul style={{ marginLeft: "1.5em", marginBottom: "1em", paddingLeft: "1em" }}>
+                                            {children}
+                                        </ul>
+                                    ),
+                                    ol: ({ children }) => (
+                                        <ol style={{ marginLeft: "1.5em", marginBottom: "1em", paddingLeft: "1em" }}>
+                                            {children}
+                                        </ol>
+                                    ),
+                                    h1: ({ children }) => (
+                                        <h1 style={{ marginTop: "1em", marginBottom: "0.5em", fontSize: "1.5em" }}>
+                                            {children}
+                                        </h1>
+                                    ),
+                                    h2: ({ children }) => (
+                                        <h2 style={{ marginTop: "1em", marginBottom: "0.5em", fontSize: "1.3em" }}>
+                                            {children}
+                                        </h2>
+                                    ),
+                                    h3: ({ children }) => (
+                                        <h3 style={{ marginTop: "1em", marginBottom: "0.5em", fontSize: "1.1em" }}>
+                                            {children}
+                                        </h3>
+                                    ),
+                                    blockquote: ({ children }) => (
+                                        <blockquote
+                                            style={{
+                                                marginLeft: "1.5em",
+                                                borderLeft: "4px solid #4CAF50",
+                                                paddingLeft: "1em",
+                                                color: "#ccc",
+                                                fontStyle: "italic",
+                                                marginBottom: "1em",
+                                            }}
+                                        >
+                                            {children}
+                                        </blockquote>
+                                    ),
+                                    code: ({ children }) => (
+                                        <code
+                                            style={{
+                                                backgroundColor: "#444",
+                                                color: "#4CAF50",
+                                                padding: "0.2em 0.4em",
+                                                borderRadius: "4px",
+                                            }}
+                                        >
+                                            {children}
+                                        </code>
+                                    ),
+                                    pre: ({ children }) => (
+                                        <pre
+                                            style={{
+                                                backgroundColor: "#333744",
+                                                color: "#fff",
+                                                padding: "10px",
+                                                borderRadius: "5px",
+                                                overflowX: "auto",
+                                                marginBottom: "1em",
+                                            }}
+                                        >
+                                            {children}
+                                        </pre>
+                                    ),
+                                }}
+                            >
+                                {msg.content}
+                            </ReactMarkdown>
+                        )}
+                    </div>
                 ))}
                 {/* Dummy div for scroll-to-bottom */}
                 <div ref={bottomRef} />

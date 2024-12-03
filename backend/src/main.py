@@ -86,7 +86,7 @@ def query_vector_db(db_path, db_type,db_config, query, top_k=5, model="openai", 
     #         return {"chart_type":chart_type,"chart_image_path": chart_path}
     #     else:
     #         return f"LLM response: {response}"
-
+    print(response)
     return response
 
 

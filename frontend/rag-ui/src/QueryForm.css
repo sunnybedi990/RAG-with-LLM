@@ -23,10 +23,63 @@
     margin-bottom: 10px;
     border-radius: 10px;
     max-width: 80%;
-    max-width: 80%;
     line-height: 1.5;
-    white-space: pre-wrap; /* Ensures line breaks are preserved */
+    /*white-space: pre-wrap;  Ensures line breaks are preserved */
 
+}
+
+.message p, 
+.message ul, 
+.message ol, 
+.message h1, 
+.message h2, 
+.message h3, 
+.message blockquote {
+    margin-bottom: 1em;
+    line-height: 1.6;
+}
+
+.message ul,
+.message ol {
+    margin-left: 1.5em;
+    margin-bottom: 1em; /* Consistent spacing with paragraphs */
+    padding-left: 1.2em; /* Slightly increase padding for clarity */
+}
+
+
+.message blockquote {
+    margin-left: 1.5em;
+    border-left: 4px solid #4CAF50;
+    padding-left: 1em;
+    color: #ccc;
+    font-style: italic;
+}
+
+.message code {
+    background-color: #444;
+    color: #4CAF50;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+}
+
+.message pre {
+    background-color: #333744;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto; /* Ensure long code blocks are scrollable */
+}
+
+.message th, 
+.message td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.message th {
+    background-color: #4CAF50;
+    color: white;
 }
 
 .user {
@@ -73,7 +126,4 @@
     border-radius: 5px;
 }
 
-.message p {
-    margin-bottom: 10px;  /* Adds space between paragraphs */
-    line-height: 1.5;     /* Improves readability */
-}
+

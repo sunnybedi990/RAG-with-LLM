@@ -41,7 +41,7 @@ function App() {
     const [embeddingModel, setEmbeddingModel] = useState("all-mpnet-base-v2"); // Default embedding model
     const [selectedCategory, setSelectedCategory] = useState("sentence_transformers"); // Default category
     const [selectedSubCategory, setSelectedSubCategory] = useState("sentence_transformers"); // Default subcategory
-    const [topK, setTopK] = useState(3);
+    const [topK, setTopK] = useState(20);
     const [file, setFile] = useState(null); // Lift file state up to App
     const [summary, setSummary] = useState(""); // State to store summary response
     const [dbType, setDbType] = useState("faiss"); // State for vector database type
